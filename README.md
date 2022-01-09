@@ -1,70 +1,78 @@
-# Getting Started with Create React App
+# Babel转义Recoil
+尝试使用babel转义recoil，使得recoil兼容IE版本
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## `webpack` 配置
+编译js文件时，使用`include`手动指定编译范围。
+- srcDir
+- recoil
+```javascript
+module.exports = {
+  module: {
+    rules: [
+      {
+        test: /\.js/,
+        loader: 'babel-loader',
+        include: [srcDir, path.resolve(__dirname, '../node_modules/recoil')]
+      }
+    ]
+  }
+}
+```
 
-## Available Scripts
+## babel.config.json
 
-In the project directory, you can run:
+安装babel基础依赖 `babel-loader` 和 `@babel/core`.
+```bash
+  npm install babel-loader @babel/core -D
+```
 
-### `npm start`
+配置 **presets** `@babel/preset-env` 、`@babel/preset-react` 
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+由于`recoil`采用了`ES6+`语法，所以需要设置`polyfill`进行兼容处理。
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### 方案一
 
-### `npm test`
+`babel.config.json` 
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```json
+  {
+    "presets": [
+      [
+        "@babel/preset-env", 
+        {
+          "useBuiltIns": "entry",
+          "corejs": {
+            "version": "3",
+            "proposals": true
+          },
+          "targets": {
+            "chrome": 75,
+            "ie": 10
+          }
+        }
+      ],
+      ["@babel/preset-react"]
+    ],
+    "plugins": [
+      [
+        "@babel/plugin-transform-runtime", 
+        {
+          "corejs": false,
+          "proposals": true
+        }
+      ]
+    ]
+  }
+```
+`index.js` 
 
-### `npm run build`
+```javascript
+  import 'core-js-pure/stable';
+  import 'regenerator-runtime/runtime';
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+### 结果
+`IE11`报错. 
+```js
+  module.exports = require("regenerator-runtime");
+```
