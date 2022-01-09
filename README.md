@@ -71,8 +71,11 @@ module.exports = {
   import 'regenerator-runtime/runtime';
 ```
 
-### 结果
-`IE11`报错. 
+### 编译
+执行 `npm run build`，运行`dist/index.html`选择 IE11打开。 
+
+运行结果，`IE11`报错. 
+
 ```js
   module.exports = require("regenerator-runtime");
 ```
